@@ -1,0 +1,111 @@
+{% extends "base.html" %}{% block title %}My Bookings · CINEMA 360{% endblock %}{% block content %}
+<section class="admin-wrap customer-bookings">
+ <div class="admin-page-head">
+  <div>
+   <p class="eyebrow">
+    YOUR CINEMA ACCOUNT
+   </p>
+   <h1>
+    My
+    <em>
+     bookings.
+    </em>
+   </h1>
+   <p class="muted">
+    Track ticket IDs, payment status, messages and cancellation requests.
+   </p>
+  </div>
+  <a class="admin-back-link" href="{{ url_for('home') }}">
+   ← CINEMA
+  </a>
+ </div>
+ {% if bookings %}
+ <div class="customer-booking-list">
+  {% for b in bookings %}
+  <article class="customer-booking glass-panel">
+   <div class="customer-booking-head">
+    <div>
+     <p class="eyebrow">
+      BOOKING #{{ b.id }}
+     </p>
+     <h2>
+      {{ b.title }}
+     </h2>
+     <p class="muted">
+      {{ b.show_time }} · Seat
+      <strong>
+       {{ b.seat_number }}
+      </strong>
+     </p>
+    </div>
+    <span class="status status-{{ b.status|lower }}">
+     {{ b.status }}
+    </span>
+   </div>
+   <div class="customer-booking-meta">
+    <div>
+     <small>
+      TICKET ID
+     </small>
+     <strong>
+      {{ b.ticket_id or 'Pending approval' }}
+     </strong>
+    </div>
+    <div>
+     <small>
+      AMOUNT
+     </small>
+     <strong>
+      ₹{{ b.price }}
+     </strong>
+    </div>
+    <div>
+     <small>
+      UTR
+     </small>
+     <strong>
+      {{ b.utr or 'Not submitted' }}
+     </strong>
+    </div>
+   </div>
+   {% if b.cancel_requested %}
+   <p class="cancel-pending">
+    Cancellation request sent{% if b.cancel_reason %}: {{ b.cancel_reason }}{% endif %}. Waiting for admin review. Seat is still reserved.
+   </p>
+   {% endif %}
+   <div class="customer-actions">
+    {% if b.status == 'PENDING' %}
+    <a class="primary-btn" href="{{ url_for('payment',booking_id=b.id) }}">
+     CONTINUE PAYMENT ↗
+    </a>
+    {% endif %}
+    <a class="outline-btn" href="{{ url_for('ticket',booking_id=b.id) }}">
+     VIEW TICKET &amp; MESSAGES
+    </a>
+    {% if b.status == 'CONFIRMED' and not b.cancel_requested %}
+    <form action="{{ url_for('request_cancel',booking_id=b.id) }}" class="cancel-form" method="post">
+     <input maxlength="500" name="reason" placeholder="Reason (optional)"/>
+     <button class="mini-btn reject" onclick="return confirm('Send cancellation request to cinema admin?')">
+      REQUEST CANCELLATION
+     </button>
+    </form>
+    {% endif %}
+   </div>
+  </article>
+  {% endfor %}
+ </div>
+ {% else %}
+ <div class="empty-state">
+  <h2>
+   No bookings yet
+  </h2>
+  <p>
+   Book a movie after logging in and it will appear here.
+  </p>
+  <a class="primary-btn" href="{{ url_for('home') }}#movies">
+   EXPLORE MOVIES ↗
+  </a>
+ </div>
+ {% endif %}
+</section>
+{% endblock %}
