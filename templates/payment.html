@@ -1,0 +1,96 @@
+{% extends "base.html" %}{% block title %}Payment · CINEMA 360{% endblock %}{% block content %}
+<div class="flow-backdrop">
+ {% if panorama %}
+ <div class="flow-panorama" style="background-image:url('{{ url_for('static', filename=panorama.image_path) }}')">
+ </div>
+ {% endif %}
+ <section class="seat-modal flow-card">
+  <a aria-label="Back to cinema" class="close-btn flow-close" href="{{ url_for('home') }}">
+   ×
+  </a>
+  <p class="eyebrow">
+   PAYMENT · STEP 2 OF 3
+  </p>
+  <h2>
+   Complete your
+   <em>
+    booking.
+   </em>
+  </h2>
+  <div class="ticket-mini">
+   <span class="eyebrow">
+    BOOKING REQUEST #{{ booking.id }}
+   </span>
+   <h3>
+    {{ booking.title }}
+   </h3>
+   <p>
+    {{ booking.show_time }} · Seat {{ booking.seat_number }}
+   </p>
+   <div class="price-line">
+    <span>
+     Total payable
+    </span>
+    <strong>
+     ₹{{ booking.price }}
+    </strong>
+   </div>
+   <span class="status status-{{ booking.status|lower }}">
+    {{ booking.status }}
+   </span>
+  </div>
+  {% if booking.status == 'PENDING' %}
+  <div class="payment-area">
+   <h3>
+    Pay using UPI
+   </h3>
+   {% if settings.get('qr_path') %}
+   <img alt="UPI QR code" class="qr-image" src="{{ url_for('static', filename=settings.get('qr_path')) }}"/>
+   {% else %}
+   <div class="qr-placeholder">
+    QR CODE
+    <br/>
+    <small>
+     Admin will upload QR here
+    </small>
+   </div>
+   {% endif %}
+        {% if settings.get('upi_id') %}
+   <p>
+    UPI ID:
+    <strong>
+     {{ settings.get('upi_id') }}
+    </strong>
+   </p>
+   {% endif %}
+   <p class="muted">
+    After paying, enter the UTR/reference number below. Your ticket is not confirmed until admin verifies the payment.
+   </p>
+   <form method="post">
+    <label>
+     UPI UTR / reference number
+     <input maxlength="80" minlength="6" name="utr" placeholder="Enter transaction reference" required=""/>
+    </label>
+    <button class="primary-btn full">
+     SUBMIT UTR
+     <span>
+      ↗
+     </span>
+    </button>
+   </form>
+  </div>
+  {% else %}
+  <p>
+   Your booking status is
+   <strong>
+    {{ booking.status }}
+   </strong>
+   .
+  </p>
+  {% endif %}
+  <a class="outline-btn full flow-secondary" href="{{ url_for('ticket', booking_id=booking.id) }}">
+   VIEW BOOKING STATUS
+  </a>
+ </section>
+</div>
+{% endblock %}
