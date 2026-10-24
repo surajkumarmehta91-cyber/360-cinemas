@@ -1,0 +1,59 @@
+{% extends "base.html" %}{% block title %}Payment Setup · CINEMA 360{% endblock %}{% block content %}
+<section class="admin-wrap">
+ <div class="admin-page-head">
+  <div>
+   <p class="eyebrow">
+    PAYMENT CONFIGURATION
+   </p>
+   <h1>
+    Manual
+    <em>
+     UPI payment.
+    </em>
+   </h1>
+   <p class="muted">
+    Set the UPI ID and QR code shown to customers during checkout.
+   </p>
+  </div>
+  <a class="admin-back-link" href="{{ url_for('admin_dashboard') }}">
+   ← DASHBOARD
+  </a>
+ </div>
+ <section class="admin-card">
+  <p class="eyebrow">
+   UPI DETAILS
+  </p>
+  <h2>
+   Payment
+   <em>
+    destination
+   </em>
+  </h2>
+  <form action="{{ url_for('admin_settings') }}" class="admin-form-grid" enctype="multipart/form-data" method="post">
+   <label class="span-all">
+    UPI ID
+    <input autocomplete="off" name="upi_id" placeholder="name@upi" value="{{ settings.get('upi_id','') }}"/>
+   </label>
+   <label class="span-all">
+    Upload / replace payment QR
+    <input accept=".jpg,.jpeg,.png,.webp" name="qr" type="file"/>
+   </label>
+   <button class="primary-btn">
+    SAVE PAYMENT SETTINGS
+   </button>
+  </form>
+  {% if settings.get('qr_path') %}
+  <div class="payment-qr-preview">
+   <p class="eyebrow">
+    CURRENT QR CODE
+   </p>
+   <img alt="Current UPI QR" src="{{ url_for('static',filename=settings.get('qr_path')) }}" style="max-width:260px;width:100%;height:auto;border:1px solid #333;padding:10px;background:#fff"/>
+  </div>
+  {% else %}
+  <p class="muted">
+   No payment QR uploaded yet.
+  </p>
+  {% endif %}
+ </section>
+</section>
+{% endblock %}
