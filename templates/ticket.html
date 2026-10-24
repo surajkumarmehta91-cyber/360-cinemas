@@ -1,0 +1,111 @@
+{% extends "base.html" %}{% block title %}Booking status · CINEMA 360{% endblock %}{% block content %}
+<div class="flow-backdrop">
+ {% if panorama %}
+ <div class="flow-panorama" style="background-image:url('{{ url_for('static', filename=panorama.image_path) }}')">
+ </div>
+ {% endif %}
+ <section class="seat-modal flow-card">
+  <a aria-label="Back to cinema" class="close-btn flow-close" href="{{ url_for('home') }}">
+   ×
+  </a>
+  <p class="eyebrow">
+   BOOKING · STEP 3 OF 3
+  </p>
+  <h2>
+   Ticket
+   <em>
+    details.
+   </em>
+  </h2>
+  <div class="ticket-top">
+   <span class="eyebrow">
+    CINEMA 360°
+   </span>
+   <span class="status status-{{ booking.status|lower }}">
+    {{ booking.status }}
+   </span>
+  </div>
+  <h3>
+   {{ booking.title }}
+  </h3>
+  <div class="ticket-details">
+   <div>
+    <small>
+     TICKET ID
+    </small>
+    <strong>
+     {{ booking.ticket_id or 'Pending approval' }}
+    </strong>
+   </div>
+   <div>
+    <small>
+     SHOWTIME
+    </small>
+    <strong>
+     {{ booking.show_time }}
+    </strong>
+   </div>
+   <div>
+    <small>
+     SEAT
+    </small>
+    <strong>
+     {{ booking.seat_number }}
+    </strong>
+   </div>
+   <div>
+    <small>
+     AMOUNT
+    </small>
+    <strong>
+     ₹{{ booking.price }}
+    </strong>
+   </div>
+  </div>
+  <p class="muted">
+   Booking reference #{{ booking.id }} · {{ booking.created_at }}
+  </p>
+  {% if booking.status == 'CONFIRMED' %}
+  <div class="success-note">
+   ✓ Payment verified. Your ticket is confirmed. Keep this Ticket ID for entry.
+  </div>
+  {% elif booking.status == 'PENDING' %}
+  <div class="pending-note">
+   Payment verification pending. Ticket ID will appear after admin approval.
+  </div>
+  {% elif booking.status == 'REJECTED' %}
+  <div class="error-note">
+   This booking was rejected. Check messages below for details.
+  </div>
+  {% endif %}
+  <h3>
+   Messages &amp; notifications
+  </h3>
+  {% for m in messages %}
+  <div class="message">
+   <small>
+    {{ m.sender }} · {{ m.created_at }}
+   </small>
+   <p>
+    {{ m.body }}
+   </p>
+  </div>
+  {% else %}
+  <p class="muted">
+   No messages yet.
+  </p>
+  {% endfor %}
+    {% if booking.status == 'PENDING' %}
+  <a class="primary-btn full" href="{{ url_for('payment', booking_id=booking.id) }}">
+   RETURN TO PAYMENT
+   <span>
+    ↗
+   </span>
+  </a>
+  {% endif %}
+  <a class="outline-btn full flow-secondary" href="{{ url_for('home') }}">
+   BACK TO CINEMA
+  </a>
+ </section>
+</div>
+{% endblock %}
