@@ -418,6 +418,67 @@ def admin_seat_position():
     flash(f"Position for seat {seat} saved.", "success")
     return redirect(url_for("admin_dashboard") + "#panorama")
 
+
+
+@app.route("/admin/panorama/edit/<int:panorama_id>", methods=["POST"])
+@admin_required
+def admin_panorama_edit(panorama_id):
+    name = request.form.get("name", "").strip()
+    if not name:
+        flash("Panorama name is required.", "error")
+        return redirect(url_for("admin_dashboard") + "#panorama")
+
+    con = db()
+    current = con.execute("SELECT * FROM panoramas WHERE id=?", (panorama_id,)).fetchone()
+    if not current:
+        con.close()
+        flash("Panorama not found.", "error")
+        return redirect(url_for("admin_dashboard") + "#panorama")
+
+    new_image = save_upload("panorama")
+    if new_image:
+        con.execute("UPDATE panoramas SET name=?, image_path=? WHERE id=?",
+                    (name, new_image, panorama_id))
+    else:
+        con.execute("UPDATE panoramas SET name=? WHERE id=?", (name, panorama_id))
+    con.commit()
+    con.close()
+    flash("Panorama updated successfully.", "success")
+    return redirect(url_for("admin_dashboard") + "#panorama")
+
+
+@app.route("/admin/panorama/delete/<int:panorama_id>", methods=["POST"])
+@admin_required
+def admin_panorama_delete(panorama_id):
+    con = db()
+    current = con.execute("SELECT * FROM panoramas WHERE id=?", (panorama_id,)).fetchone()
+    if not current:
+        con.close()
+        flash("Panorama not found.", "error")
+        return redirect(url_for("admin_dashboard") + "#panorama")
+
+    # Remove saved seat positions tied to this panorama before deleting it.
+    con.execute("DELETE FROM seat_positions WHERE panorama_id=?", (panorama_id,))
+    con.execute("DELETE FROM panoramas WHERE id=?", (panorama_id,))
+    remaining = con.execute("SELECT id FROM panoramas ORDER BY id DESC LIMIT 1").fetchone()
+    if remaining:
+        con.execute("UPDATE panoramas SET active=0")
+        con.execute("UPDATE panoramas SET active=1 WHERE id=?", (remaining["id"],))
+    con.commit()
+    con.close()
+
+    # Remove the uploaded file only if it lives in this app's uploads directory.
+    image_path = current["image_path"] or ""
+    if image_path.startswith("uploads/"):
+        full_path = os.path.join(UPLOAD_DIR, os.path.basename(image_path))
+        if os.path.isfile(full_path):
+            try:
+                os.remove(full_path)
+            except OSError:
+                pass
+    flash("Panorama deleted.", "success")
+    return redirect(url_for("admin_dashboard") + "#panorama")
+
 # ADMIN: MOVIES AND SHOWTIMES
 @app.route("/admin/movie", methods=["POST"])
 @admin_required
