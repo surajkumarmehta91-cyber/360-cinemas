@@ -1,0 +1,180 @@
+{% extends "base.html" %}{% block title %}Movies &amp; Showtimes · CINEMA 360{% endblock %}{% block content %}
+<section class="admin-wrap">
+ <div class="admin-page-head">
+  <div>
+   <p class="eyebrow">
+    CONTENT MANAGEMENT
+   </p>
+   <h1>
+    Movies &amp;
+    <em>
+     showtimes.
+    </em>
+   </h1>
+   <p class="muted">
+    Add new movies, first shows and extra showtimes.
+   </p>
+  </div>
+  <a class="admin-back-link" href="{{ url_for('admin_dashboard') }}">
+   ← DASHBOARD
+  </a>
+ </div>
+ <div class="admin-section-stack">
+  <section class="admin-card">
+   <p class="eyebrow">
+    NEW MOVIE
+   </p>
+   <h2>
+    Add movie +
+    <em>
+     first show
+    </em>
+   </h2>
+   <form action="{{ url_for('admin_movie') }}" class="admin-form-grid" enctype="multipart/form-data" method="post">
+    <label>
+     Movie title
+     <input name="title" placeholder="Movie name" required=""/>
+    </label>
+    <label>
+     First showtime
+     <input name="show_time" required="" type="time" value="18:00"/>
+    </label>
+    <label>
+     Ticket price (₹)
+     <input min="1" name="price" required="" type="number" value="250"/>
+    </label>
+    <label>
+     Poster image
+     <input accept=".jpg,.jpeg,.png,.webp" name="poster" type="file"/>
+    </label>
+    <label class="span-all">
+     Description
+     <textarea name="description" placeholder="Short movie description" rows="3"></textarea>
+    </label>
+    <button class="primary-btn">
+     ADD MOVIE + FIRST SHOW
+    </button>
+   </form>
+  </section>
+  <section class="admin-card">
+   <p class="eyebrow">
+    EXTRA SHOWTIMES
+   </p>
+   <h2>
+    Add another
+    <em>
+     showtime
+    </em>
+   </h2>
+   <form action="{{ url_for('admin_show') }}" class="inline-form" method="post">
+    <label>
+     Movie
+     <select name="movie_id" required="">
+      {% for m in movies %}
+      <option value="{{ m.id }}">
+       {{ m.title }}
+      </option>
+      {% endfor %}
+     </select>
+    </label>
+    <label>
+     Time
+     <input name="show_time" required="" type="time"/>
+    </label>
+    <label>
+     Ticket price (₹)
+     <input min="1" name="price" required="" type="number" value="250"/>
+    </label>
+    <button class="outline-btn">
+     ADD SHOWTIME
+    </button>
+   </form>
+  </section>
+  <section class="admin-card">
+   <p class="eyebrow">
+    LIBRARY
+   </p>
+   <h2>
+    Edit your
+    <em>
+     movies
+    </em>
+   </h2>
+   {% if movies %}
+   <div class="admin-list">
+    {% for m in movies %}
+    <div class="movie-edit-item">
+     <form action="{{ url_for('admin_movie_edit', movie_id=m.id) }}" class="admin-form-grid" enctype="multipart/form-data" method="post">
+      <label>
+       Movie title
+       <input name="title" required="" value="{{ m.title }}"/>
+      </label>
+      <label>
+       Replace poster (optional)
+       <input accept=".jpg,.jpeg,.png,.webp" name="poster" type="file"/>
+      </label>
+      <label class="span-all">
+       Description
+       <textarea name="description" rows="3">{{ m.description or '' }}</textarea>
+      </label>
+      <button class="primary-btn" type="submit">
+       SAVE MOVIE CHANGES
+      </button>
+     </form>
+     <form action="{{ url_for('admin_movie_delete', movie_id=m.id) }}" class="delete-movie-form" method="post" onsubmit="return confirm('Delete this movie and all its showtimes? Movies with bookings cannot be deleted.');">
+      <button class="mini-btn reject" type="submit">
+       DELETE MOVIE
+      </button>
+      <small>
+       Deletion is blocked if this movie has any bookings.
+      </small>
+     </form>
+    </div>
+    {% endfor %}
+   </div>
+   {% else %}
+   <p class="muted">
+    No movies added yet.
+   </p>
+   {% endif %}
+  </section>
+  <section class="admin-card">
+   <p class="eyebrow">
+    SCHEDULE
+   </p>
+   <h2>
+    Edit
+    <em>
+     showtimes
+    </em>
+   </h2>
+   {% if shows %}
+   <div class="admin-list">
+    {% for s in shows %}
+    <form action="{{ url_for('admin_show_edit', show_id=s.id) }}" class="inline-form show-edit-form" method="post">
+     <strong>
+      {{ s.title }}
+     </strong>
+     <label>
+      Showtime
+      <input name="show_time" required="" type="time" value="{{ s.show_time }}"/>
+     </label>
+     <label>
+      Ticket price (₹)
+      <input min="1" name="price" required="" type="number" value="{{ s.price }}"/>
+     </label>
+     <button class="outline-btn" type="submit">
+      SAVE SHOW
+     </button>
+    </form>
+    {% endfor %}
+   </div>
+   {% else %}
+   <p class="muted">
+    No showtimes added yet.
+   </p>
+   {% endif %}
+  </section>
+ </div>
+</section>
+{% endblock %}
