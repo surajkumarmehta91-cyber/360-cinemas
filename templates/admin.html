@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard · CINEMA 360{% endblock %}
+{% block content %}
+<section class="admin-wrap">
+ <div class="admin-title">
+  <div>
+   <p class="eyebrow">
+    CONTROL ROOM
+   </p>
+   <h1>
+    Admin
+    <em>
+     dashboard.
+    </em>
+   </h1>
+   <p class="muted">
+    Manage your cinema from separate, focused pages.
+   </p>
+  </div>
+  <a class="outline-btn" href="{{ url_for('home') }}">
+   VIEW WEBSITE ↗
+  </a>
+ </div>
+ <div class="stats-grid">
+  <div class="stat">
+   <small>
+    MOVIES
+   </small>
+   <strong>
+    {{ stats.movies }}
+   </strong>
+  </div>
+  <div class="stat">
+   <small>
+    SHOWS
+   </small>
+   <strong>
+    {{ stats.shows }}
+   </strong>
+  </div>
+  <div class="stat">
+   <small>
+    PENDING PAYMENTS
+   </small>
+   <strong>
+    {{ stats.pending }}
+   </strong>
+  </div>
+  <div class="stat">
+   <small>
+    CONFIRMED TICKETS
+   </small>
+   <strong>
+    {{ stats.confirmed }}
+   </strong>
+  </div>
+ </div>
+ <div class="admin-page-grid">
+  <a class="admin-page-card" href="{{ url_for('admin_movies_page') }}">
+   <span class="page-icon">
+    ▣
+   </span>
+   <span class="eyebrow">
+    CONTENT MANAGEMENT
+   </span>
+   <h2>
+    Movies &amp;
+    <em>
+     showtimes
+    </em>
+   </h2>
+   <p>
+    Add a movie with its first show, add extra showtimes, set ticket prices and manage your movie list.
+   </p>
+   <span class="page-link">
+    OPEN MOVIES PAGE ↗
+   </span>
+  </a>
+  <a class="admin-page-card" href="{{ url_for('admin_payments_page') }}">
+   <span class="page-icon">
+    ⌁
+   </span>
+   <span class="eyebrow">
+    PAYMENT CONFIGURATION
+   </span>
+   <h2>
+    Manual
+    <em>
+     UPI payment
+    </em>
+   </h2>
+   <p>
+    Set your UPI ID and upload or replace the QR code customers use for payment.
+   </p>
+   <span class="page-link">
+    OPEN PAYMENT PAGE ↗
+   </span>
+  </a>
+  <a class="admin-page-card" href="{{ url_for('admin_bookings_page') }}">
+   <span class="page-icon">
+    ▤
+   </span>
+   <span class="eyebrow">
+    ORDERS &amp; CUSTOMER CARE
+   </span>
+   <h2>
+    Bookings &amp;
+    <em>
+     messages
+    </em>
+   </h2>
+   <p>
+    Review UTRs, approve or reject payments, issue ticket IDs and send customer messages.
+   </p>
+   <span class="page-link">
+    OPEN BOOKINGS PAGE ↗
+   </span>
+  </a>
+ </div>
+ <section class="admin-card" id="panorama">
+  <div class="section-heading">
+   <div>
+    <p class="eyebrow">
+     360° VIEWER
+    </p>
+    <h2>
+     Cinema
+     <em>
+      image &amp; positions.
+     </em>
+    </h2>
+   </div>
+  </div>
+  <form action="{{ url_for('admin_panorama') }}" class="inline-form" enctype="multipart/form-data" method="post">
+   <label>
+    Panorama name
+    <input name="name" placeholder="Main Cinema" required=""/>
+   </label>
+   <label>
+    360° panorama image
+    <input accept=".jpg,.jpeg,.png,.webp" name="panorama" required="" type="file"/>
+   </label>
+   <button class="primary-btn">
+    UPLOAD IMAGE
+   </button>
+  </form>
+  {% if panoramas %}
+  <div class="admin-panorama-list">
+   {% for p in panoramas %}
+   <div class="panorama-item">
+    <strong>
+     {{ p.name }}
+    </strong>
+    <span>
+     {{ p.image_path }}
+    </span>
+    <button class="outline-btn small-btn" onclick="pickPanorama('{{ p.id }}','{{ url_for('static',filename=p.image_path) }}')" type="button">
+     PICK SEAT POSITIONS
+    </button>
+   </div>
+   {% endfor %}
+  </div>
+  <div class="picker-box">
+   <h3>
+    Absolute Position Picker
+   </h3>
+   <p class="muted">
+    Choose a seat, drag/zoom the 360° image and click PICK CURRENT VIEW to save the direction.
+   </p>
+   <div class="admin-viewer" id="adminPanorama">
+   </div>
+   <div class="picker-controls">
+    <label>
+     Seat number
+     <select id="seatChoice" onchange="showSeatPositionStatus()">
+      {% for row in ['A','B','C','D'] %}{% for n in range(1,6) %}
+      <option>
+       {{ row }}{{ n }}
+      </option>
+      {% endfor %}{% endfor %}
+     </select>
+    </label>
+    <button class="outline-btn" onclick="pickCurrent()" type="button">
+     PICK CURRENT VIEW
+    </button>
+    <span class="coords" id="pickedCoords">
+     Choose a seat, aim the panorama at that exact seat, then save.
+    </span>
+   </div>
+   <p class="muted">
+    Repeat for every seat (A1–D5). You decide each seat's own direction and zoom; saving one seat does not set the others.
+   </p>
+   <div class="seat-position-status" id="seatPositionStatus">
+    {% for p in panoramas %}
+    <div class="saved-seat-list" data-panorama="{{ p.id }}" hidden="">
+     {% for row in ['A','B','C','D'] %}{% for n in range(1,6) %}{% set seat = row ~ n %}{% set found = namespace(ok=false) %}{% for pos in seat_positions %}{% if pos.panorama_id == p.id and pos.seat_number == seat %}{% set found.ok = true %}{% endif %}{% endfor %}
+     <span class="seat-position-chip {{ 'saved' if found.ok else 'unsaved' }}" data-seat="{{ seat }}">
+      {{ seat }} · {{ 'Saved' if found.ok else 'Not set' }}
+     </span>
+     {% endfor %}{% endfor %}
+    </div>
+    {% endfor %}
+   </div>
+   <form action="{{ url_for('admin_seat_position') }}" class="inline-form" method="post">
+    <input id="pickerPanoramaId" name="panorama_id" type="hidden"/>
+    <input id="saveSeat" name="seat_number" type="hidden"/>
+    <input id="saveYaw" name="yaw" type="hidden"/>
+    <input id="savePitch" name="pitch" type="hidden"/>
+    <input id="saveHfov" name="hfov" type="hidden"/>
+    <button class="primary-btn" type="submit">
+     SAVE POSITION
+    </button>
+   </form>
+  </div>
+  {% else %}
+  <p class="muted">
+   Upload your 360° panorama to enable the position picker.
+  </p>
+  {% endif %}
+ </section>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js">
+</script>
+<link href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" rel="stylesheet"/>
+<script>
+ let adminViewer=null, activePanoramaId=null, picked=null;
+function pickPanorama(id,image){
+  activePanoramaId=id;
+  document.getElementById('pickerPanoramaId').value=id;
+  document.querySelectorAll('.saved-seat-list').forEach(el=>el.hidden=(el.dataset.panorama!==String(id)));
+  showSeatPositionStatus();
+  const host=document.getElementById('adminPanorama');
+  host.style.height='min(62vh, 620px)'; host.style.minHeight='360px';
+  host.innerHTML='';
+  if(adminViewer){try{adminViewer.destroy();}catch(e){} adminViewer=null;}
+  if(!window.pannellum){host.innerHTML='<p style="padding:20px;color:#ff7a86">360° viewer library load nahi hui. Internet on karke page reload karo.</p>';return;}
+  adminViewer=pannellum.viewer('adminPanorama',{type:'equirectangular',panorama:image,autoLoad:true,showControls:true,compass:false,hfov:90,minHfov:25,maxHfov:120});
+  adminViewer.on('error',function(message){host.innerHTML='<div style="padding:20px;color:#ff7a86">Image load nahi hui: '+String(message)+'</div>';});
+  document.querySelector('.picker-box').scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>{if(adminViewer){try{adminViewer.resize();}catch(e){}}},350);
+}
+function showSeatPositionStatus(){const seat=document.getElementById('seatChoice').value;document.querySelectorAll('.seat-position-chip').forEach(el=>el.style.outline=(el.dataset.seat===seat?'1px solid #d9b77a':'none'));}
+function pickCurrent(){if(!adminViewer||!activePanoramaId){alert('Pehle panorama ke PICK SEAT POSITIONS button par click karo.');return;}picked={yaw:adminViewer.getYaw(),pitch:adminViewer.getPitch(),hfov:Math.min(adminViewer.getHfov(),65)};let seat=document.getElementById('seatChoice').value;document.getElementById('saveSeat').value=seat;document.getElementById('saveYaw').value=picked.yaw;document.getElementById('savePitch').value=picked.pitch;document.getElementById('saveHfov').value=picked.hfov;document.getElementById('pickedCoords').textContent=seat+' · yaw '+picked.yaw.toFixed(1)+'° · pitch '+picked.pitch.toFixed(1)+'° · zoom '+picked.hfov.toFixed(1);}
+</script>
+{% endblock %}
