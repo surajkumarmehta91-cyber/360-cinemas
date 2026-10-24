@@ -148,15 +148,34 @@
   <div class="admin-panorama-list">
    {% for p in panoramas %}
    <div class="panorama-item">
-    <strong>
-     {{ p.name }}
-    </strong>
-    <span>
-     {{ p.image_path }}
-    </span>
-    <button class="outline-btn small-btn" onclick="pickPanorama('{{ p.id }}','{{ url_for('static',filename=p.image_path) }}')" type="button">
-     PICK SEAT POSITIONS
+    <strong>{{ p.name }}</strong>
+    <span>{{ p.image_path }}</span>
+    <button class="outline-btn small-btn" type="button"
+      onclick="document.getElementById('edit-panorama-{{ p.id }}').hidden = false">
+      EDIT
     </button>
+    <form id="edit-panorama-{{ p.id }}" class="panorama-edit-form" hidden
+      action="{{ url_for('admin_panorama_edit', panorama_id=p.id) }}"
+      method="post" enctype="multipart/form-data">
+      <label>Panorama name
+        <input name="name" value="{{ p.name }}" required>
+      </label>
+      <label>Replace image (optional)
+        <input name="panorama" type="file" accept=".jpg,.jpeg,.png,.webp">
+      </label>
+      <button class="primary-btn" type="submit">SAVE EDIT</button>
+      <button class="outline-btn" type="button"
+        onclick="this.closest('form').hidden=true">CANCEL</button>
+    </form>
+    <form class="panorama-delete-form"
+      action="{{ url_for('admin_panorama_delete', panorama_id=p.id) }}"
+      method="post"
+      onsubmit="return confirm('Delete this panorama and its saved seat positions?')">
+      <button class="outline-btn small-btn" type="submit">DELETE</button>
+    </form>
+    <button class="outline-btn small-btn"
+      onclick="pickPanorama('{{ p.id }}','{{ url_for('static',filename=p.image_path) }}')"
+      type="button">PICK SEAT POSITIONS</button>
    </div>
    {% endfor %}
   </div>
