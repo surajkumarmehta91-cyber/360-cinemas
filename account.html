@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block title %}Customer Account · CINEMA 360{% endblock %}{% block content %}
+<section class="account-shell">
+  <div class="account-card glass-panel">
+    <a class="account-close" href="{{ url_for('home') }}" aria-label="Close account panel">×</a>
+    <p class="eyebrow">CINEMA 360 · CUSTOMER AREA</p>
+    <h1>{% if mode == 'register' %}Create your <em>account.</em>{% else %}Welcome <em>back.</em>{% endif %}</h1>
+    <p class="muted">Your tickets, booking status and cancellation requests — all in one place.</p>
+    <div class="account-tabs"><a class="{% if mode != 'register' %}active{% endif %}" href="{{ url_for('account',mode='login') }}">LOG IN</a><a class="{% if mode == 'register' %}active{% endif %}" href="{{ url_for('account',mode='register') }}">CREATE ACCOUNT</a></div>
+    {% if form_error %}<div class="account-error" role="alert">{{ form_error }}</div>{% endif %}
+    <form method="post" class="account-form">
+      <input type="hidden" name="mode" value="{{ mode }}">
+      {% if mode == 'register' %}<label>Full name<input name="name" required maxlength="80" placeholder="Your name" value="{{ request.form.get('name','') }}"></label>{% endif %}
+      <label>Mobile / contact<input name="contact" required maxlength="40" autocomplete="username" placeholder="Mobile number or contact" value="{{ request.form.get('contact','') }}"></label>
+      <label>Password<input type="password" name="password" required minlength="6" autocomplete="{% if mode == 'register' %}new-password{% else %}current-password{% endif %}" placeholder="At least 6 characters"></label>
+      <button class="primary-btn full">{% if mode == 'register' %}CREATE ACCOUNT{% else %}LOG IN{% endif %} <span>↗</span></button>
+    </form>
+    <p class="account-note">Your password is stored as a secure hash. This version uses password login, not OTP verification.</p>
+  </div>
+</section>{% endblock %}
