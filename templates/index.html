@@ -8,7 +8,7 @@
 {% block content %}
 <section class="immersive-hero" id="experience">
  {% if panorama %}
- <div data-image="{{ url_for('static', filename=panorama.image_path) }}" id="panorama">
+ <div data-image="{{ image_src(panorama.image_path) }}" id="panorama">
  </div>
  <div class="hero-vignette">
  </div>
@@ -69,7 +69,7 @@
   {% for movie in movies %}
   <article class="movie-card">
    {% if movie.poster %}
-   <img alt="{{ movie.title }}" class="poster" src="{{ url_for('static', filename=movie.poster) }}"/>
+   <img alt="{{ movie.title }}" class="poster" src="{{ image_src(movie.poster) }}"/>
    {% else %}
    <div class="poster poster-placeholder">
     <span>

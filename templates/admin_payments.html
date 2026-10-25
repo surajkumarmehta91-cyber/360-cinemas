@@ -47,7 +47,7 @@
    <p class="eyebrow">
     CURRENT QR CODE
    </p>
-   <img alt="Current UPI QR" src="{{ url_for('static',filename=settings.get('qr_path')) }}" style="max-width:260px;width:100%;height:auto;border:1px solid #333;padding:10px;background:#fff"/>
+   <img alt="Current UPI QR" src="{{ image_src(settings.get('qr_path')) }}" style="max-width:260px;width:100%;height:auto;border:1px solid #333;padding:10px;background:#fff"/>
   </div>
   {% else %}
   <p class="muted">

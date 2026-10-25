@@ -5,12 +5,31 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 
+try:
+    import cloudinary
+    import cloudinary.uploader
+    CLOUDINARY_AVAILABLE = True
+except ImportError:
+    cloudinary = None
+    CLOUDINARY_AVAILABLE = False
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-change-this-secret-key")
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "cinema360.db")
 UPLOAD_DIR = os.path.join(BASE_DIR, "static", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+# Render Free has an ephemeral filesystem. Configure Cloudinary env vars there for durable uploads.
+CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "").strip()
+if CLOUDINARY_AVAILABLE and CLOUDINARY_URL:
+    cloudinary.config(cloudinary_url=CLOUDINARY_URL, secure=True)
+elif CLOUDINARY_AVAILABLE and all(os.environ.get(k) for k in ("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET")):
+    cloudinary.config(
+        cloud_name=os.environ["CLOUDINARY_CLOUD_NAME"],
+        api_key=os.environ["CLOUDINARY_API_KEY"],
+        api_secret=os.environ["CLOUDINARY_API_SECRET"],
+        secure=True,
+    )
 ALLOWED = {"png", "jpg", "jpeg", "webp"}
 
 def db():
@@ -95,15 +114,52 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED
 
 def save_upload(field):
+    """Save images durably on Render via Cloudinary; use local storage for development."""
     f = request.files.get(field)
     if not f or not f.filename:
         return None
     if not allowed_file(f.filename):
         flash("Please upload PNG, JPG, JPEG or WEBP image.", "error")
         return None
+
     name = secrets.token_hex(8) + "_" + secure_filename(f.filename)
+    cloudinary_ready = bool(
+        CLOUDINARY_AVAILABLE and (
+            CLOUDINARY_URL or all(os.environ.get(k) for k in
+            ("CLOUDINARY_CLOUD_NAME", "CLOUDINARY_API_KEY", "CLOUDINARY_API_SECRET"))
+        )
+    )
+    if cloudinary_ready:
+        try:
+            result = cloudinary.uploader.upload(
+                f,
+                folder="cinema360",
+                public_id=os.path.splitext(name)[0],
+                resource_type="image",
+                overwrite=False,
+            )
+            return result["secure_url"]
+        except Exception as exc:
+            app.logger.exception("Cloudinary image upload failed")
+            flash("Image upload failed. Check Cloudinary settings and try again.", "error")
+            return None
+
+    # Local development fallback only. Render Free files are erased on restart/redeploy.
+    if os.environ.get("RENDER"):
+        flash("Permanent image storage is not configured. Add Cloudinary environment variables in Render first.", "error")
+        return None
     f.save(os.path.join(UPLOAD_DIR, name))
     return "uploads/" + name
+
+
+def image_src(path):
+    """Return remote image URLs unchanged and resolve legacy local paths safely."""
+    if not path:
+        return ""
+    path = str(path).strip()
+    if path.startswith(("https://", "http://")):
+        return path
+    return url_for("static", filename=path.lstrip("/"))
 
 def get_settings():
     con = db()
@@ -114,7 +170,8 @@ def get_settings():
 @app.context_processor
 def inject_globals():
     return {"site_name": "CINEMA 360", "admin_logged_in": bool(session.get("admin")),
-                "current_user": session.get("user_name"), "user_logged_in": bool(session.get("user_id"))}
+                "current_user": session.get("user_name"), "user_logged_in": bool(session.get("user_id")),
+                "image_src": image_src}
 
 # USER ACCOUNT AND BOOKING HISTORY
 @app.route("/account", methods=["GET", "POST"])

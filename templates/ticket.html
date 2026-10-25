@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% block title %}Booking status · CINEMA 360{% endblock %}{% block content %}
 <div class="flow-backdrop">
  {% if panorama %}
- <div class="flow-panorama" style="background-image:url('{{ url_for('static', filename=panorama.image_path) }}')">
+ <div class="flow-panorama" style="background-image:url('{{ image_src(panorama.image_path) }}')">
  </div>
  {% endif %}
  <section class="seat-modal flow-card">

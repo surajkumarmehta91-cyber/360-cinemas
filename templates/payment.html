@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% block title %}Payment · CINEMA 360{% endblock %}{% block content %}
 <div class="flow-backdrop">
  {% if panorama %}
- <div class="flow-panorama" style="background-image:url('{{ url_for('static', filename=panorama.image_path) }}')">
+ <div class="flow-panorama" style="background-image:url('{{ image_src(panorama.image_path) }}')">
  </div>
  {% endif %}
  <section class="seat-modal flow-card">
@@ -45,7 +45,7 @@
     Pay using UPI
    </h3>
    {% if settings.get('qr_path') %}
-   <img alt="UPI QR code" class="qr-image" src="{{ url_for('static', filename=settings.get('qr_path')) }}"/>
+   <img alt="UPI QR code" class="qr-image" src="{{ image_src(settings.get('qr_path')) }}"/>
    {% else %}
    <div class="qr-placeholder">
     QR CODE

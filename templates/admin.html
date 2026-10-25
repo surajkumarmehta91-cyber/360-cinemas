@@ -174,7 +174,7 @@
       <button class="outline-btn small-btn" type="submit">DELETE</button>
     </form>
     <button class="outline-btn small-btn"
-      onclick="pickPanorama('{{ p.id }}','{{ url_for('static',filename=p.image_path) }}')"
+      onclick="pickPanorama('{{ p.id }}','{{ image_src(p.image_path) }}')"
       type="button">PICK SEAT POSITIONS</button>
    </div>
    {% endfor %}
